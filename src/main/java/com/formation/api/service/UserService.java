@@ -1,6 +1,7 @@
 package com.formation.api.service;
 
 import com.formation.api.model.User;
+import com.formation.api.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,21 +25,19 @@ public class UserService {
 //        users.add(new User(2L, "Bob", "bob@test.com"));
 //    }
 
-    private final List<User> users = new ArrayList<>(
-            List.of(
-                    new User(1L, "Alice", "alice@test.com"),
-                    new User(2L, "Bob", "bob@test.com")
-            )
-    );
+    private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
 
     public List<User> getAllUsers() {
-        return users;
+        return userRepository.findAll();
     }
 
     public User getUserById(Long id) {
-        return users.stream()
-                .filter(user -> user.getId().equals(id))
-                .findFirst()
+        return userRepository.findById(id)
                 .orElseThrow(() ->
                         new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -48,19 +47,12 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        long newId = users.stream()
-                .mapToLong(User::getId)
-                .max()
-                .orElse(0) + 1;
-
-        user.setId(newId);
-        users.add(user);
-
-        return user;
+        return userRepository.save(user);
     }
 
     public void deleteUser(Long id) {
+
         User user = getUserById(id);
-        users.remove(user);
+        userRepository.delete(user);
     }
 }
